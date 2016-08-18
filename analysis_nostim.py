@@ -8,25 +8,25 @@ import scipy.io as sio
 import matplotlib
 import matplotlib.pyplot as plt
 import noise_functions
-
+# set matplotlib parameters
 matplotlib.rcParams['pdf.fonttype'] = 42
 plt.style.use('ggplot')
 
+# get list of mat files and unit info from CSV in data folder
 bin_size = 0.3
-plt_units = 'n'
-plt_summary = 'y'
-data_path = '/Volumes/anupam/Amanda Data/resort_nostim/'
+plt_units = 'n'  # plot individual correlelograms?
+plt_summary = 'y'  # plot summary population analyses?
+data_path = '/Volumes/anupam/Amanda Data/resort_nostim/'  # path to all data
+mat_files = list(glob.iglob(data_path + '*.mat'))  # list of all mat files in data folder
+unit_data = pd.read_csv(data_path + 'unit_info_nostim.csv')  # unit data from CSV in data folder
+layers = {1: 'supragranular', 2: 'granular', 3: 'infragranular'}  # replace layer numbers with layer names
+unit_data = unit_data.replace({"layer": layers})
 
 # create folder for figures
 if not os.path.exists(data_path + 'figures'):
     os.makedirs(data_path + 'figures')
 
-mat_files = list(glob.iglob(data_path + '*.mat'))
-unit_data = pd.read_csv(data_path + 'unit_info_nostim.csv')
-
-layers = {1: 'supragranular', 2: 'granular', 3: 'infragranular'}
-unit_data = unit_data.replace({"layer": layers})
-
+# initialize dataframes and lists
 all_stat_coeff = pd.DataFrame()
 all_run_coeff = pd.DataFrame()
 

@@ -11,7 +11,6 @@ matplotlib.rcParams['pdf.fonttype'] = 42
 plt.style.use('ggplot')
 
 data_path = '/Volumes/anupam/Amanda Data/vis_stim_resort/'
-
 mat_files = list(glob.iglob(data_path + '*.mat'))
 unit_data = pd.read_csv(data_path + 'unit_info.csv')
 
