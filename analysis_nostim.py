@@ -50,13 +50,14 @@ for file in mat_files:
     # iterate through each unit (fix to remove pandas iteration?)
     for unit in date_units.iterrows():
         unit = unit[1]
-        layer = unit.layer
+        layer = unit.layer  # get unit layer as string
+        channel = unit['channel']  # get unit channel number
+        unit_number = unit['unit_number']  # get unit number
 
-        channel = unit['channel']
-        unit_number = unit['unit_number']
         channel_ind = int(vis_index[(vis_index.channel == channel) & (vis_index.cluster == unit_number)]['ind1'].values)
         unit_ind = int(vis_index[(vis_index.channel == channel) & (vis_index.cluster == unit_number)]['ind2'].values)
 
+        # pull timing information, not all mat files have >1 column causing TypeError
         try:
             spk_times = pd.DataFrame(vis_info[channel_ind][unit_ind].Spk_times_s, columns=['spike times'])
             stat_times = vis_info[channel_ind][unit_ind].Stat_times
@@ -68,8 +69,8 @@ for file in mat_files:
             mov_times = vis_info[channel_ind].Mov_times
             exp_dur = vis_info[channel_ind].Exp_dur
 
+        # get bins for pd.cut function by flattening stat and making sure that stat is first or adjusting accordingly
         bins = stat_times.flatten('F')
-
         first = ['stat', 'run']
         if np.max(bins) != exp_dur:
             bins = np.append(bins, exp_dur)
@@ -80,13 +81,13 @@ for file in mat_files:
         spk_times['movement'] = np.where(pd.cut(spk_times['spike times'], bins, labels=False) % 2 == 1,
                                          first[1], first[0])
 
-        run_counts = pd.DataFrame()
-        stat_counts = pd.DataFrame()
+        run_counts, stat_counts = (pd.DataFrame() for i in range(2))
         for i, bin in enumerate(bins[:-1]):
             new_bins = np.arange(bins[i], bins[i+1], bin_size)
             spk_cut = pd.cut(spk_times['spike times'], bins=new_bins)
             spk_counts = pd.value_counts(spk_cut).reindex(spk_cut.cat.categories)
 
+            # in case beginning of trial is not stat
             if first[0] == 'stat':
                 if i % 2 == 0:
                     stat_counts = pd.concat([stat_counts, spk_counts], axis=0)
@@ -100,6 +101,7 @@ for file in mat_files:
 
         unit_str = '%s_%s_%s' % (date, channel, unit_number)
 
+        # create running list of units by layer and PV
         if unit.layer == 'infragranular':
             infra_list.append(unit_str)
         elif unit.layer == 'granular':
@@ -132,6 +134,7 @@ for file in mat_files:
     all_stat_coeff = pd.concat([all_stat_coeff, stat_counts_corr], axis=0)
     all_run_coeff = pd.concat([all_run_coeff, run_counts_corr], axis=0)
 
+    # plot individual correlogram for units if plt_units = y
     if plt_units == 'y':
         plt.ioff()
         plt.matshow(date_stat_counts.corr())
@@ -143,6 +146,7 @@ for file in mat_files:
         plt.close()
         plt.ion()
 
+# plot population data in histograms and bar charts
 if plt_summary == 'y':
     noise_functions.main_plots(data_path, all_stat_coeff, all_run_coeff, pv_list, pyr_list)
 
