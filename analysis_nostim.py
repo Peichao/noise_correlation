@@ -27,29 +27,27 @@ if not os.path.exists(data_path + 'figures'):
     os.makedirs(data_path + 'figures')
 
 # initialize dataframes and lists
-all_stat_coeff = pd.DataFrame()
-all_run_coeff = pd.DataFrame()
-
+all_stat_coeff, all_run_coeff = (pd.DataFrame for i in range(2))
 unit_counter = 0
 vis_info = {}
-pv_list = []
-pyr_list = []
-supra_list = []
-gran_list = []
-infra_list = []
+pv_list, pyr_list, supra_list, gran_list, infra_list = ([] for i in range(5))
 
 for file in mat_files:
-    date_stat_counts = pd.DataFrame()
-    date_run_counts = pd.DataFrame()
-    date = int(ntpath.basename(file)[:8])
+    date_stat_counts, date_run_counts = (pd.DataFrame() for i in range(2))
 
+    # get date from filename (first 8 characters)
+    date = int(ntpath.basename(file)[:8])
+    # print message of date to the console
     print(str(datetime.now()) + " Currently processing: " + str(date))
 
+    # load mat file for date
     vis_info = sio.loadmat(file, squeeze_me=True, struct_as_record=False)['info']
 
+    # filter units that belong to date
     date_units = unit_data[unit_data.date == date]
-    vis_index = noise_functions.get_chans(vis_info)
+    vis_index = noise_functions.get_chans(vis_info)  # get channel numbers by iterating through mat file
 
+    # iterate through each unit (fix to remove pandas iteration?)
     for unit in date_units.iterrows():
         unit = unit[1]
         layer = unit.layer
