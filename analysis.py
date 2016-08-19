@@ -6,13 +6,18 @@ import numpy as np
 import scipy.io as sio
 import matplotlib
 import matplotlib.pyplot as plt
-
+# set matplotlib parameters
 matplotlib.rcParams['pdf.fonttype'] = 42
 plt.style.use('ggplot')
 
-data_path = '/Volumes/anupam/Amanda Data/vis_stim_resort/'
-mat_files = list(glob.iglob(data_path + '*.mat'))
+data_path = 'D:/noise_correlation/resort/'
+vstim_path = data_path + 'vstim'
+mat_files = list(glob.iglob(vstim_path + '*.mat'))
 unit_data = pd.read_csv(data_path + 'unit_info.csv')
+
+# create folder for figures
+if not os.path.exists(data_path + 'figures'):
+    os.makedirs(data_path + 'figures')
 
 vis_info = {}
 for file in mat_files:
