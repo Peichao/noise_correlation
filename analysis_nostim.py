@@ -16,9 +16,9 @@ plt.style.use('ggplot')
 bin_size = 0.3
 plt_units = 'n'  # plot individual correlelograms?
 plt_summary = 'y'  # plot summary population analyses?
-data_path = '/Volumes/anupam/Amanda Data/resort_nostim/'  # path to all data
-mat_files = list(glob.iglob(data_path + '*.mat'))  # list of all mat files in data folder
-unit_data = pd.read_csv(data_path + 'unit_info_nostim.csv')  # unit data from CSV in data folder
+data_path = '/Volumes/anupam/Amanda Data/noise_correlation/resort/'  # path to all data
+mat_files = list(glob.iglob(data_path + 'nostim/*.mat'))  # list of all mat files in data folder
+unit_data = pd.read_csv(data_path + 'unit_info.csv')  # unit data from CSV in data folder
 layers = {1: 'supragranular', 2: 'granular', 3: 'infragranular'}  # replace layer numbers with layer names
 unit_data = unit_data.replace({"layer": layers})
 
