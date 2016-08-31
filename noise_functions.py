@@ -29,7 +29,7 @@ def get_chans(vis_info):
     return vis_index
 
 
-def main_plots(data_path, all_stat_coeff, all_run_coeff, pv_list, pyr_list):
+def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_list):
     plt.ioff()
 
     plt.boxplot([all_stat_coeff['corr_coefficient'], all_run_coeff['corr_coefficient']])
@@ -90,8 +90,13 @@ def main_plots(data_path, all_stat_coeff, all_run_coeff, pv_list, pyr_list):
     stat_bar = ax.bar(ind, stat_means, width, color='#E24A33', yerr=stat_std, ecolor='k')
     run_bar = ax.bar(ind + width, run_means, width, color='#348ABD', yerr=run_std, ecolor='k')
 
+    if vstim == 'y':
+        stim_str = 'Visual Stimulus'
+    else:
+        stim_str = 'No Stimulus'
+
     ax.set_ylabel('Pearson Correlation Coefficient')
-    ax.set_title('Correlation Coefficients, No Stimulus')
+    ax.set_title('Correlation Coefficients, %s' % stim_str)
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('All Units', 'PV-PV', 'Pyr-Pyr'))
     ax.legend((stat_bar[0], run_bar[0]), ('Stationary', 'Running'))
@@ -113,7 +118,7 @@ def main_plots(data_path, all_stat_coeff, all_run_coeff, pv_list, pyr_list):
     plt.ion()
 
 
-def layer_plots(data_path, all_stat_coeff, all_run_coeff, supra_list, gran_list, infra_list):
+def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gran_list, infra_list):
     # layer plots
     plt.ioff()
     supra_stat_coeff = all_stat_coeff[(all_stat_coeff['Row'].isin(supra_list)) &
@@ -164,8 +169,13 @@ def layer_plots(data_path, all_stat_coeff, all_run_coeff, supra_list, gran_list,
     stat_bar = ax.bar(ind, layer_stat_means, width, color='#E24A33', yerr=layer_stat_std, ecolor='k')
     run_bar = ax.bar(ind + width, layer_run_means, width, color='#348ABD', yerr=layer_run_std, ecolor='k')
 
+    if vstim == 'y':
+        stim_str = 'Visual Stimulus'
+    else:
+        stim_str = 'No Stimulus'
+
     ax.set_ylabel('Pearson Correlation Coefficient')
-    ax.set_title('Correlation Coefficients, No Stimulus')
+    ax.set_title('Correlation Coefficients, %s' % stim_str)
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('Supragranular', 'Granular', 'Infragranular'))
     ax.legend((stat_bar[0], run_bar[0]), ('Stationary', 'Running'))
@@ -187,7 +197,8 @@ def layer_plots(data_path, all_stat_coeff, all_run_coeff, supra_list, gran_list,
     plt.ion()
 
 
-def layer_type_plots(data_path, all_stat_coeff, all_run_coeff, supra_list, gran_list, infra_list, pv_list, pyr_list):
+def layer_type_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list,
+                     gran_list, infra_list, pv_list, pyr_list):
     # layer plots by cell type
     plt.ioff()
     supra_pv_stat_coeff = all_stat_coeff[(all_stat_coeff['Row'].isin(supra_list)) &
@@ -297,8 +308,13 @@ def layer_type_plots(data_path, all_stat_coeff, all_run_coeff, supra_list, gran_
     stat_bar = ax.bar(ind, layer_type_stat_means, width, color='#E24A33', yerr=layer_type_stat_std, ecolor='k')
     run_bar = ax.bar(ind + width, layer_type_run_means, width, color='#348ABD', yerr=layer_type_run_std, ecolor='k')
 
+    if vstim == 'y':
+        stim_str = 'Visual Stimulus'
+    else:
+        stim_str = 'No Stimulus'
+
     ax.set_ylabel('Pearson Correlation Coefficient')
-    ax.set_title('Correlation Coefficients, No Stimulus')
+    ax.set_title('Correlation Coefficients, %s' % stim_str)
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('Supra\n(PV)', 'Supra\n(Pyr)', 'Gran\n(PV)', 'Gran\n(Pyr)',
                         'Infra\n(PV)', 'Infra\n(Pyr)'))

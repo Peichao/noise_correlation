@@ -23,11 +23,11 @@ layers = {1: 'supragranular', 2: 'granular', 3: 'infragranular'}  # replace laye
 unit_data = unit_data.replace({"layer": layers})
 
 # create folder for figures
-if not os.path.exists(data_path + 'figures'):
-    os.makedirs(data_path + 'figures')
+if not os.path.exists(data_path + 'nostim/figures'):
+    os.makedirs(data_path + 'nostim/figures')
 
 # initialize dataframes and lists
-all_stat_coeff, all_run_coeff = (pd.DataFrame for i in range(2))
+all_stat_coeff, all_run_coeff = (pd.DataFrame() for i in range(2))
 unit_counter = 0
 vis_info = {}
 pv_list, pyr_list, supra_list, gran_list, infra_list = ([] for i in range(5))
@@ -44,7 +44,7 @@ for file in mat_files:
     vis_info = sio.loadmat(file, squeeze_me=True, struct_as_record=False)['info']
 
     # filter units that belong to date
-    date_units = unit_data[unit_data.date == date]
+    date_units = unit_data[(unit_data.date == date) & (unit_data.v_stim == 'n')]
     vis_index = noise_functions.get_chans(vis_info)  # get channel numbers by iterating through mat file
 
     # iterate through each unit (fix to remove pandas iteration?)
@@ -148,10 +148,11 @@ for file in mat_files:
 
 # plot population data in histograms and bar charts
 if plt_summary == 'y':
-    noise_functions.main_plots(data_path, all_stat_coeff, all_run_coeff, pv_list, pyr_list)
+    noise_functions.main_plots(data_path + 'nostim/', 'n', all_stat_coeff, all_run_coeff, pv_list, pyr_list)
 
-    noise_functions.layer_plots(data_path, all_stat_coeff, all_run_coeff, supra_list, gran_list, infra_list)
+    noise_functions.layer_plots(data_path + 'nostim/', 'n', all_stat_coeff, all_run_coeff, supra_list,
+                                gran_list, infra_list)
 
-    noise_functions.layer_type_plots(data_path, all_stat_coeff, all_run_coeff, supra_list, gran_list, infra_list,
-                                     pv_list, pyr_list)
+    noise_functions.layer_type_plots(data_path + 'nostim/', 'n', all_stat_coeff, all_run_coeff, supra_list,
+                                     gran_list, infra_list, pv_list, pyr_list)
 
