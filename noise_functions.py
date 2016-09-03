@@ -87,8 +87,8 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
     width = 0.25
 
     fig, ax = plt.subplots()
-    stat_bar = ax.bar(ind, stat_means, width, color='#E24A33', yerr=stat_std, ecolor='k')
-    run_bar = ax.bar(ind + width, run_means, width, color='#348ABD', yerr=run_std, ecolor='k')
+    stat_bar = ax.bar(ind, stat_means, width, color='#348ABD', yerr=stat_std, ecolor='k')
+    run_bar = ax.bar(ind + width, run_means, width, color='#E24A33', yerr=run_std, ecolor='k')
 
     if vstim == 'y':
         stim_str = 'Visual Stimulus'
@@ -166,9 +166,9 @@ def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gra
     width = 0.25
 
     fig2, ax = plt.subplots()
-    stat_bar = ax.bar(ind, layer_stat_means, width, color='#E24A33', yerr=layer_stat_std, ecolor='k')
-    run_bar = ax.bar(ind + width, layer_run_means, width, color='#348ABD', yerr=layer_run_std, ecolor='k')
-
+    stat_bar = ax.bar(ind, layer_stat_means, width, color='#348ABD', yerr=layer_stat_std, ecolor='k')
+    run_bar = ax.bar(ind + width, layer_run_means, width, color='#E24A33', yerr=layer_run_std, ecolor='k')
+    E24A33
     if vstim == 'y':
         stim_str = 'Visual Stimulus'
     else:
@@ -305,8 +305,8 @@ def layer_type_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list
     width = 0.25
 
     fig3, ax = plt.subplots()
-    stat_bar = ax.bar(ind, layer_type_stat_means, width, color='#E24A33', yerr=layer_type_stat_std, ecolor='k')
-    run_bar = ax.bar(ind + width, layer_type_run_means, width, color='#348ABD', yerr=layer_type_run_std, ecolor='k')
+    stat_bar = ax.bar(ind, layer_type_stat_means, width, color='#348ABD', yerr=layer_type_stat_std, ecolor='k')
+    run_bar = ax.bar(ind + width, layer_type_run_means, width, color='#E24A33', yerr=layer_type_run_std, ecolor='k')
 
     if vstim == 'y':
         stim_str = 'Visual Stimulus'
@@ -341,3 +341,11 @@ def layer_type_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list
 
     plt.close()
     plt.ion()
+
+
+def corr_coeff_df(binned_counts):
+    counts_corr = binned_counts.corr().where(
+        np.triu(np.ones(binned_counts.corr().shape)).astype(np.bool) == False)
+    counts_corr = counts_corr.stack().reset_index()
+    counts_corr.columns = ['Row', 'Column', 'corr_coefficient']
+    return counts_corr
