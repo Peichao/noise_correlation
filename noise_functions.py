@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
+import scipy as sp
+from scipy import stats
 import matplotlib.pyplot as plt
+from matplotlib.markers import TICKDOWN
 
 
 def get_chans(vis_info):
@@ -57,6 +60,10 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
     plt.savefig(data_path + 'figures/' + 'movement_boxplot_pyr.pdf', format='pdf')
     plt.close()
 
+    p_vals = np.array([sp.stats.wilcoxon(all_stat_coeff['corr_coefficient'], all_run_coeff['corr_coefficient']),
+                       sp.stats.wilcoxon(pv_stat_coeff['corr_coefficient'], pv_run_coeff['corr_coefficient']),
+                       sp.stats.wilcoxon(pyr_stat_coeff['corr_coefficient'], pyr_run_coeff['corr_coefficient'])])
+
     all_coeff = pd.concat([all_stat_coeff['corr_coefficient'],
                            all_run_coeff['corr_coefficient']], axis=1)
     all_coeff.columns = ['Stationary', 'Running']
@@ -90,6 +97,28 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
     stat_bar = ax.bar(ind, stat_means, width, color='#348ABD', yerr=stat_std, ecolor='k')
     run_bar = ax.bar(ind + width, run_means, width, color='#E24A33', yerr=run_std, ecolor='k')
 
+    y_lim = ax.get_ylim()
+    offset = (y_lim[1] - y_lim[0]) / 5
+
+    for i, p in enumerate(p_vals):
+        if p[1] >= 0.05:
+            display_string = r'n.s.'
+        elif p[1] < 0.001:
+            display_string = r'***'
+        elif p[1] < 0.01:
+            display_string = r'**'
+        else:
+            display_string = r'*'
+
+        height = offset + stat_means.max()
+        bar_centers = ind[i] + np.array([0.5, 1.5]) * width
+        significance_bar(bar_centers[0], bar_centers[1], height, display_string)
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+    ax.legend((stat_bar[0], run_bar[0]), ('Stationary', 'Running'), loc='center left', bbox_to_anchor=(1, 0.5))
+
     if vstim == 'y':
         stim_str = 'Visual Stimulus'
     else:
@@ -99,7 +128,6 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
     ax.set_title('Correlation Coefficients, %s' % stim_str)
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('All Units', 'PV-PV', 'Pyr-Pyr'))
-    ax.legend((stat_bar[0], run_bar[0]), ('Stationary', 'Running'))
 
     plt.savefig(data_path + 'figures/movement_bar.pdf', format='pdf')
     plt.close()
@@ -116,6 +144,8 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
 
     plt.close()
     plt.ion()
+
+    return p_vals
 
 
 def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gran_list, infra_list):
@@ -162,13 +192,39 @@ def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gra
                                all_gran_coeff['Stationary'].std() / np.sqrt(len(gran_stat_coeff)),
                                all_infra_coeff['Stationary'].std() / np.sqrt(len(infra_stat_coeff))])
 
+    p_vals = np.array([sp.stats.wilcoxon(all_supra_coeff['Stationary'], all_supra_coeff['Running']),
+                       sp.stats.wilcoxon(all_gran_coeff['Stationary'], all_gran_coeff['Running']),
+                       sp.stats.wilcoxon(all_infra_coeff['Stationary'], all_infra_coeff['Running'])])
+
     ind = np.arange(len(layer_run_means))
     width = 0.25
 
     fig2, ax = plt.subplots()
     stat_bar = ax.bar(ind, layer_stat_means, width, color='#348ABD', yerr=layer_stat_std, ecolor='k')
     run_bar = ax.bar(ind + width, layer_run_means, width, color='#E24A33', yerr=layer_run_std, ecolor='k')
-    E24A33
+
+    y_lim = ax.get_ylim()
+    offset = (y_lim[1] - y_lim[0]) / 5
+
+    for i, p in enumerate(p_vals):
+        if p[1] >= 0.05:
+            displaystring = r'n.s.'
+        elif p[1] < 0.001:
+            displaystring = r'***'
+        elif p[1] < 0.01:
+            displaystring = r'**'
+        else:
+            displaystring = r'*'
+
+        height = offset + layer_stat_means.max()
+        bar_centers = ind[i] + np.array([0.5, 1.5]) * width
+        significance_bar(bar_centers[0], bar_centers[1], height, displaystring)
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+    ax.legend((stat_bar[0], run_bar[0]), ('Stationary', 'Running'), loc='center left', bbox_to_anchor=(1, 0.5))
+
     if vstim == 'y':
         stim_str = 'Visual Stimulus'
     else:
@@ -178,7 +234,6 @@ def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gra
     ax.set_title('Correlation Coefficients, %s' % stim_str)
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('Supragranular', 'Granular', 'Infragranular'))
-    ax.legend((stat_bar[0], run_bar[0]), ('Stationary', 'Running'))
 
     plt.savefig(data_path + 'figures/movement_bar_layer.pdf', format='pdf')
     plt.close()
@@ -349,3 +404,15 @@ def corr_coeff_df(binned_counts):
     counts_corr = counts_corr.stack().reset_index()
     counts_corr.columns = ['Row', 'Column', 'corr_coefficient']
     return counts_corr
+
+
+def significance_bar(start, end, height, displaystring, linewidth=1.2,
+                     markersize=8, boxpad=0.3, fontsize=15, color='k'):
+    # draw a line with downticks at the ends
+    plt.plot([start, end], [height] * 2, '-', color=color, lw=linewidth, marker=TICKDOWN, markeredgewidth=linewidth,
+             markersize=markersize)
+    # draw the text with a bounding box covering up the line
+    t = plt.text(0.5*(start+end), height + 0.005, displaystring, ha='center', va='center',
+             bbox=dict(facecolor='1.', edgecolor='none', boxstyle='Square,pad='+str(boxpad)), size=fontsize)
+    t.set_bbox(dict(color='white', alpha=0.0, edgecolor='white'))
+

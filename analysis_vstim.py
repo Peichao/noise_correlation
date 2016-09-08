@@ -15,7 +15,7 @@ plt.style.use('ggplot')
 
 # get list of mat files and unit info from CSV in data folder
 bin_size = 0.3
-plt_units = 'y'  # plot individual correlelograms?
+plt_units = 'n'  # plot individual correlelograms?
 plt_summary = 'y'  # plot summary population analyses?
 data_path = '/Volumes/anupam/Amanda Data/noise_correlation/resort/'  # path to all data
 mat_files = list(glob.iglob(data_path + 'vstim/*.mat'))  # list of all mat files in data folder
@@ -104,8 +104,24 @@ for file in mat_files:
                 stat_trials_pref = stat_trials[max_ori_ind] - 1
                 mov_trials_pref = mov_trials[max_ori_ind] - 1
 
-                stat_trials_nonpref = stat_trials[~max_ori_ind] - 1
-                mov_trials_nonpref = mov_trials[~max_ori_ind] - 1
+                stat_trials_nonpref = np.ma.array(stat_trials, mask=False)
+                stat_trials_nonpref.mask[max_ori_ind] = True
+                stat_trials_nonpref = stat_trials_nonpref.compressed()
+                for i, element in enumerate(stat_trials_nonpref):
+                    if type(element) == int:
+                        stat_trials_nonpref[i] = np.reshape(np.array(element), 1, )
+
+                stat_trials_nonpref = np.concatenate(stat_trials_nonpref)
+                stat_trials_nonpref -= 1
+
+                mov_trials_nonpref = np.ma.array(mov_trials, mask=False)
+                mov_trials_nonpref.mask[max_ori_ind] = True
+                mov_trials_nonpref = mov_trials_nonpref.compressed()
+                for i, element in enumerate(mov_trials_nonpref):
+                    if type(element) == int:
+                        mov_trials_nonpref[i] = np.reshape(np.array(element), 1, )
+                mov_trials_nonpref = np.concatenate(mov_trials_nonpref)
+                mov_trials_nonpref -= 1
 
                 stim_start_samp = int(np.round((stim_time[0] + 0.1) * fsample))
                 stim_end_samp = int(stim_start_samp + np.round((stim_time[1] - 0.1) * fsample))
@@ -155,12 +171,11 @@ for file in mat_files:
 
 # plot population data in histograms and bar charts
 if plt_summary == 'y':
-    noise_functions.main_plots(data_path + 'vstim/', 'y', all_stat_coeff_pref, all_run_coeff_pref, pv_list, pyr_list)
+    p_vals = noise_functions.main_plots(data_path + 'vstim/', 'y', all_stat_coeff_pref, all_run_coeff_pref,
+                                        pv_list, pyr_list)
 
     noise_functions.layer_plots(data_path + 'vstim/', 'y', all_stat_coeff_pref, all_run_coeff_pref,
                                 supra_list, gran_list, infra_list)
 
     noise_functions.layer_type_plots(data_path + 'vstim/', 'y', all_stat_coeff_pref, all_run_coeff_pref,
                                      supra_list, gran_list, infra_list, pv_list, pyr_list)
-
-
