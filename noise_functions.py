@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 from scipy import stats
+import sklearn
+from sklearn import metrics
 import matplotlib.pyplot as plt
 from matplotlib.markers import TICKDOWN
 
@@ -47,7 +49,7 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
     plt.boxplot([pv_stat_coeff['corr_coefficient'], pv_run_coeff['corr_coefficient']])
     plt.xticks([1, 2], ['Stationary', 'Running'])
     plt.ylabel('Pearson Correlation Coefficient')
-    plt.title('All PV-PV Pairs')
+    plt.title('All PV/PV Pairs')
     plt.savefig(data_path + 'figures/' + 'movement_boxplot_pv.pdf', format='pdf')
     plt.close()
 
@@ -56,13 +58,25 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
     plt.boxplot([pyr_stat_coeff['corr_coefficient'], pyr_run_coeff['corr_coefficient']])
     plt.xticks([1, 2], ['Stationary', 'Running'])
     plt.ylabel('Pearson Correlation Coefficient')
-    plt.title('All Pyr-Pyr Pairs')
+    plt.title('All non-PV/non-PV Pairs')
     plt.savefig(data_path + 'figures/' + 'movement_boxplot_pyr.pdf', format='pdf')
+    plt.close()
+
+    mix_stat_coeff = all_stat_coeff[(all_stat_coeff['Row'].isin(pyr_list)) & (all_stat_coeff['Column'].isin(pv_list)) |
+                                    (all_stat_coeff['Row'].isin(pv_list)) & (all_stat_coeff['Column'].isin(pyr_list))]
+    mix_run_coeff = all_run_coeff[(all_run_coeff['Row'].isin(pyr_list)) & (all_run_coeff['Column'].isin(pv_list)) |
+                                  (all_run_coeff['Row'].isin(pv_list)) & (all_run_coeff['Column'].isin(pyr_list))]
+    plt.boxplot([mix_stat_coeff['corr_coefficient'], mix_run_coeff['corr_coefficient']])
+    plt.xticks([1, 2], ['Stationary', 'Running'])
+    plt.ylabel('Pearson Correlation Coefficient')
+    plt.title('All PV/non-PV Pairs')
+    plt.savefig(data_path + 'figures/' + 'movement_boxplot_mix.pdf', format='pdf')
     plt.close()
 
     p_vals = np.array([sp.stats.wilcoxon(all_stat_coeff['corr_coefficient'], all_run_coeff['corr_coefficient']),
                        sp.stats.wilcoxon(pv_stat_coeff['corr_coefficient'], pv_run_coeff['corr_coefficient']),
-                       sp.stats.wilcoxon(pyr_stat_coeff['corr_coefficient'], pyr_run_coeff['corr_coefficient'])])
+                       sp.stats.wilcoxon(pyr_stat_coeff['corr_coefficient'], pyr_run_coeff['corr_coefficient']),
+                       sp.stats.wilcoxon(mix_stat_coeff['corr_coefficient'], mix_run_coeff['corr_coefficient'])])
 
     all_coeff = pd.concat([all_stat_coeff['corr_coefficient'],
                            all_run_coeff['corr_coefficient']], axis=1)
@@ -73,22 +87,29 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
     all_pyr_coeff = pd.concat([pyr_stat_coeff['corr_coefficient'],
                                pyr_run_coeff['corr_coefficient']], axis=1)
     all_pyr_coeff.columns = ['Stationary', 'Running']
+    all_mix_coeff = pd.concat([mix_stat_coeff['corr_coefficient'],
+                               mix_run_coeff['corr_coefficient']], axis=1)
+    all_mix_coeff.columns = ['Stationary', 'Running']
 
     run_means = np.array([all_coeff['Running'].mean(),
                           all_pv_coeff['Running'].mean(),
-                          all_pyr_coeff['Running'].mean()])
+                          all_pyr_coeff['Running'].mean(),
+                          all_mix_coeff['Running'].mean()])
 
     run_std = np.array([all_coeff['Running'].std() / np.sqrt(len(all_run_coeff)),
                         all_pv_coeff['Running'].std() / np.sqrt(len(pv_run_coeff)),
-                        all_pyr_coeff['Running'].std() / np.sqrt(len(pyr_run_coeff))])
+                        all_pyr_coeff['Running'].std() / np.sqrt(len(pyr_run_coeff)),
+                        all_mix_coeff['Running'].std() / np.sqrt(len(mix_run_coeff))])
 
     stat_means = np.array([all_coeff['Stationary'].mean(),
                            all_pv_coeff['Stationary'].mean(),
-                           all_pyr_coeff['Stationary'].mean()])
+                           all_pyr_coeff['Stationary'].mean(),
+                           all_mix_coeff['Stationary'].mean()])
 
     stat_std = np.array([all_coeff['Stationary'].std() / np.sqrt(len(all_stat_coeff)),
                          all_pv_coeff['Stationary'].std() / np.sqrt(len(pv_stat_coeff)),
-                         all_pyr_coeff['Stationary'].std() / np.sqrt(len(pyr_stat_coeff))])
+                         all_pyr_coeff['Stationary'].std() / np.sqrt(len(pyr_stat_coeff)),
+                         all_mix_coeff['Stationary'].std() / np.sqrt(len(pyr_stat_coeff))])
 
     ind = np.arange(len(run_means))
     width = 0.25
@@ -127,25 +148,27 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
     ax.set_ylabel('Pearson Correlation Coefficient')
     ax.set_title('Correlation Coefficients, %s' % stim_str)
     ax.set_xticks(ind + width)
-    ax.set_xticklabels(('All Units', 'PV-PV', 'Pyr-Pyr'))
+    ax.set_xticklabels(('All Units', 'PV/PV', 'non-PV/non-PV', 'non-PV/PV'))
 
     plt.savefig(data_path + 'figures/movement_bar.pdf', format='pdf')
     plt.close()
 
-    f1, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
+    f1, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex=True)
     all_coeff.plot.hist(alpha=0.5, ax=ax1)
     ax1.set_title('All Units')
     all_pv_coeff.plot.hist(alpha=0.5, ax=ax2)
-    ax2.set_title('PV-PV')
+    ax2.set_title('PV/PV')
     all_pyr_coeff.plot.hist(alpha=0.5, ax=ax3)
-    ax3.set_title('Pyr-Pyr')
+    ax3.set_title('non-PV/non-PV')
+    all_mix_coeff.plot.hist(alpha=0.5, ax=ax3)
+    ax3.set_title('non-PV/PV')
     plt.subplots_adjust(hspace=0.5)
     plt.savefig(data_path + 'figures/movement_hist.pdf', format='pdf')
 
     plt.close()
     plt.ion()
 
-    return p_vals
+    return all_coeff, all_pv_coeff, all_pyr_coeff, all_mix_coeff
 
 
 def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gran_list, infra_list):
@@ -416,3 +439,9 @@ def significance_bar(start, end, height, displaystring, linewidth=1.2,
              bbox=dict(facecolor='1.', edgecolor='none', boxstyle='Square,pad='+str(boxpad)), size=fontsize)
     t.set_bbox(dict(color='white', alpha=0.0, edgecolor='white'))
 
+
+def calc_MI(x, y, bins):
+
+    c_xy = np.histogram2d(x, y, bins)[0]
+    mi = sklearn.metrics.mutual_info_score(None, None, contingency=c_xy)
+    return mi

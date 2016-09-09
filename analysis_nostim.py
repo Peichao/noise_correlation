@@ -8,12 +8,13 @@ import scipy.io as sio
 import matplotlib
 import matplotlib.pyplot as plt
 import noise_functions
+
 # set matplotlib parameters
 matplotlib.rcParams['pdf.fonttype'] = 42
 plt.style.use('ggplot')
 
 # get list of mat files and unit info from CSV in data folder
-bin_size = 0.3
+bin_size = 0.1
 plt_units = 'n'  # plot individual correlelograms?
 plt_summary = 'y'  # plot summary population analyses?
 data_path = '/Volumes/anupam/Amanda Data/noise_correlation/resort/'  # path to all data
