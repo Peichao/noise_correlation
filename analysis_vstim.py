@@ -12,6 +12,8 @@ import noise_functions
 import multiprocessing
 from joblib import Parallel, delayed
 
+plt.switch_backend('agg')
+
 # set matplotlib parameters
 matplotlib.rcParams['pdf.fonttype'] = 42
 plt.style.use('ggplot')
@@ -225,6 +227,7 @@ def analysis_vstim(bin_size, plt_fano, plt_units, plt_summary, data_path, mat_fi
     return all_coeff, all_pv_coeff, all_pyr_coeff, all_mix_coeff
 
 bin_size_mult = [0.01, 0.02, 0.03, 0.06, 0.08, 0.12, 0.16, 0.20, 0.25, 0.30, 0.35]
+# bin_size_mult = [0.01, 0.03, 0.1, 0.3]
 coeffs_run, coeffs_stat, coeffs_run_pv, coeffs_stat_pv, coeffs_run_pyr, coeffs_stat_pyr = [pd.DataFrame()
                                                                                            for i in range(6)]
 
@@ -234,20 +237,15 @@ def par_analysis(bin, plt_fano, plt_units, plt_summary, data_path, mat_files, un
                                                                            data_path, mat_files, unit_data)
     return all_coeff
 
-results = Parallel(n_jobs=num_cores)(delayed(par_analysis)(bin, plt_fano, plt_units, plt_summary,
+results = Parallel(n_jobs=num_cores)(delayed(par_analysis)(i2, plt_fano, plt_units, plt_summary,
                                                            data_path, mat_files, unit_data) for i2 in bin_size_mult)
 
-for bin in bin_size_mult:
-    all_coeff, all_pv_coeff, all_pyr_coeff, all_mix_coeff = analysis_vstim(bin, plt_fano, plt_units, plt_summary,
-                                                                           data_path, mat_files, unit_data)
-    coeffs_run[bin] = all_coeff['Running']
-    coeffs_stat[bin] = all_coeff['Stationary']
+plt.switch_backend('macosx')
 
-    coeffs_run_pv[bin] = all_pv_coeff['Running']
-    coeffs_stat_pv[bin] = all_pv_coeff['Stationary']
-
-    coeffs_run_pyr[bin] = all_pyr_coeff['Running']
-    coeffs_stat_pyr[bin] = all_pyr_coeff['Stationary']
+for idx, bin_idx in enumerate(results):
+    bin = bin_size_mult[idx]
+    coeffs_run[bin] = bin_idx['Running']
+    coeffs_stat[bin] = bin_idx['Stationary']
 
 coeffs = np.stack((coeffs_stat.as_matrix(), coeffs_run.as_matrix()), axis=2)
 colors = {'Stationary': 'b',
@@ -257,3 +255,26 @@ sns.tsplot(data=coeffs, time=bin_size_mult, ax=ax, condition=['Stationary', 'Run
 ax.set_title('Comparison of Correlation Coefficient and Counting Window, Visiual Stimulus')
 ax.set_xlabel('Counting Window (seconds)')
 ax.set_ylabel('Pearson Correlation Coefficient')
+plt.show()
+
+
+# for bin in bin_size_mult:
+#     all_coeff, all_pv_coeff, all_pyr_coeff, all_mix_coeff = analysis_vstim(bin, plt_fano, plt_units, plt_summary,
+#                                                                            data_path, mat_files, unit_data)
+#     coeffs_run[bin] = all_coeff['Running']
+#     coeffs_stat[bin] = all_coeff['Stationary']
+#
+#     coeffs_run_pv[bin] = all_pv_coeff['Running']
+#     coeffs_stat_pv[bin] = all_pv_coeff['Stationary']
+#
+#     coeffs_run_pyr[bin] = all_pyr_coeff['Running']
+#     coeffs_stat_pyr[bin] = all_pyr_coeff['Stationary']
+#
+# coeffs = np.stack((coeffs_stat.as_matrix(), coeffs_run.as_matrix()), axis=2)
+# colors = {'Stationary': 'b',
+#           'Running': 'r'}
+# fig, ax = plt.subplots()
+# sns.tsplot(data=coeffs, time=bin_size_mult, ax=ax, condition=['Stationary', 'Running'], color=colors)
+# ax.set_title('Comparison of Correlation Coefficient and Counting Window, Visiual Stimulus')
+# ax.set_xlabel('Counting Window (seconds)')
+# ax.set_ylabel('Pearson Correlation Coefficient')
