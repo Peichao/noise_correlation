@@ -25,7 +25,7 @@ bin_size = 0.1  # bin size for correlograms
 plt_fano = 'n'  # plot fano factor graphs?
 plt_units = 'n'  # plot individual correlelograms?
 plt_summary = 'y'  # plot summary population analyses?
-data_path = '/Volumes/anupam/Amanda Data/noise_correlation/resort/'  # path to all data
+data_path = 'D:/noise_correlation/resort/'  # path to all data
 mat_files = list(glob.iglob(data_path + 'vstim/*.mat'))  # list of all mat files in data folder
 unit_data = pd.read_csv(data_path + 'unit_info.csv')  # unit data from CSV in data folder
 layers = {1: 'supragranular', 2: 'granular', 3: 'infragranular'}  # replace layer numbers with layer names
@@ -226,8 +226,7 @@ def analysis_vstim(bin_size, plt_fano, plt_units, plt_summary, data_path, mat_fi
 
     return all_coeff, all_pv_coeff, all_pyr_coeff, all_mix_coeff
 
-bin_size_mult = [0.01, 0.02, 0.03, 0.06, 0.08, 0.12, 0.16, 0.20, 0.25, 0.30, 0.35]
-# bin_size_mult = [0.01, 0.03, 0.1, 0.3]
+bin_size_mult = [0.01, 0.03, 0.1, 0.17, 0.25, 0.3]
 coeffs_run, coeffs_stat, coeffs_run_pv, coeffs_stat_pv, coeffs_run_pyr, coeffs_stat_pyr = [pd.DataFrame()
                                                                                            for i in range(6)]
 
@@ -237,25 +236,27 @@ def par_analysis(bin, plt_fano, plt_units, plt_summary, data_path, mat_files, un
                                                                            data_path, mat_files, unit_data)
     return all_coeff
 
-results = Parallel(n_jobs=num_cores)(delayed(par_analysis)(i2, plt_fano, plt_units, plt_summary,
-                                                           data_path, mat_files, unit_data) for i2 in bin_size_mult)
+results = []
+if __name__ == '__main__':
+    results = Parallel(n_jobs=num_cores)(delayed(par_analysis)(i2, plt_fano, plt_units, plt_summary,
+                                                               data_path, mat_files, unit_data) for i2 in bin_size_mult)
 
-plt.switch_backend('macosx')
+    plt.switch_backend('Qt4Agg')
 
-for idx, bin_idx in enumerate(results):
-    bin = bin_size_mult[idx]
-    coeffs_run[bin] = bin_idx['Running']
-    coeffs_stat[bin] = bin_idx['Stationary']
+    for idx, bin_idx in enumerate(results):
+        bin = bin_size_mult[idx]
+        coeffs_run[bin] = bin_idx['Running']
+        coeffs_stat[bin] = bin_idx['Stationary']
 
-coeffs = np.stack((coeffs_stat.as_matrix(), coeffs_run.as_matrix()), axis=2)
-colors = {'Stationary': 'b',
-          'Running': 'r'}
-fig, ax = plt.subplots()
-sns.tsplot(data=coeffs, time=bin_size_mult, ax=ax, condition=['Stationary', 'Running'], color=colors)
-ax.set_title('Comparison of Correlation Coefficient and Counting Window, Visiual Stimulus')
-ax.set_xlabel('Counting Window (seconds)')
-ax.set_ylabel('Pearson Correlation Coefficient')
-plt.show()
+    coeffs = np.stack((coeffs_stat.as_matrix(), coeffs_run.as_matrix()), axis=2)
+    colors = {'Stationary': 'b',
+              'Running': 'r'}
+    fig, ax = plt.subplots()
+    sns.tsplot(data=coeffs, time=bin_size_mult, ax=ax, condition=['Stationary', 'Running'], color=colors)
+    ax.set_title('Comparison of Correlation Coefficient and Counting Window, Visiual Stimulus')
+    ax.set_xlabel('Counting Window (seconds)')
+    ax.set_ylabel('Pearson Correlation Coefficient')
+    plt.show()
 
 
 # for bin in bin_size_mult:
