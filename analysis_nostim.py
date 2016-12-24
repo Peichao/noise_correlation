@@ -17,7 +17,7 @@ plt.style.use('ggplot')
 bin_size = 0.1
 plt_units = 'n'  # plot individual correlelograms?
 plt_summary = 'y'  # plot summary population analyses?
-data_path = '/Volumes/anupam/Amanda Data/noise_correlation/resort/'  # path to all data
+data_path = 'D:/noise_correlation/resort/'  # path to all data
 mat_files = list(glob.iglob(data_path + 'nostim/*.mat'))  # list of all mat files in data folder
 unit_data = pd.read_csv(data_path + 'unit_info.csv')  # unit data from CSV in data folder
 layers = {1: 'supragranular', 2: 'granular', 3: 'infragranular'}  # replace layer numbers with layer names
@@ -32,6 +32,7 @@ all_stat_coeff, all_run_coeff = (pd.DataFrame() for i in range(2))
 unit_counter = 0
 vis_info = {}
 pv_list, pyr_list, supra_list, gran_list, infra_list = ([] for i in range(5))
+fano = pd.DataFrame(columns=['unit', 'PV', 'layer', 'stat', 'run'])
 
 for file in mat_files:
     date_stat_counts, date_run_counts = (pd.DataFrame() for i in range(2))
@@ -101,7 +102,10 @@ for file in mat_files:
                     stat_counts = pd.concat([stat_counts, spk_counts], axis=0)
 
         unit_str = '%s_%s_%s' % (date, channel, unit_number)
-
+        stat_fano = stat_counts[0].var() / stat_counts[0].mean()
+        run_fano = run_counts[0].var() / run_counts[0].mean()
+        fano_unit = [unit_str, unit.PV, unit.layer, stat_fano, run_fano]
+        fano.loc[unit_counter] = fano_unit
         # create running list of units by layer and PV
         if unit.layer == 'infragranular':
             infra_list.append(unit_str)
@@ -157,3 +161,4 @@ if plt_summary == 'y':
     noise_functions.layer_type_plots(data_path + 'nostim/', 'n', all_stat_coeff, all_run_coeff, supra_list,
                                      gran_list, infra_list, pv_list, pyr_list)
 
+    noise_functions.fano_plot(data_path + 'nostim/', fano)

@@ -421,6 +421,13 @@ def layer_type_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list
     plt.ion()
 
 
+def fano_plot(data_path, fano):
+    plt.ioff()
+    plt.scatter(fano.run, fano.stat, marker='o')
+    plt.savefig(data_path + 'figures/fano.pdf', format='pdf')
+    plt.ion()
+
+
 def corr_coeff_df(binned_counts):
     counts_corr = binned_counts.corr().where(
         np.triu(np.ones(binned_counts.corr().shape)).astype(np.bool) == False)

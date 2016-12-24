@@ -159,18 +159,6 @@ def analysis_vstim(bin_size, plt_fano, plt_units, plt_summary, data_path, mat_fi
                     stim_end_samp = int(stim_start_samp + np.round((stim_time[1] - 0.1) * fsample))
                     stim_spk_times = spk_times[stim_start_samp:stim_end_samp]
 
-                    # # calculate mutual information between columns of spike counts using same binsize
-                    # nbins = stim_time[1] / bin_size
-                    # N = stim_spk_times.shape[1]
-                    # matMI = np.zeros((N, N))
-                    #
-                    # stim_spk_times_matrix = stim_spk_times.as_matrix()
-                    #
-                    # for ix in np.arange(N):
-                    #     for jx in np.arange(ix + 1, N):
-                    #         matMI[ix, jx] = noise_functions.calc_MI(stim_spk_times_matrix[:, ix],
-                    #                                                 stim_spk_times_matrix[:, jx], nbins)
-
                     # get number of samples per bin based on frequency of samples in dataset
                     bin_samples = np.round(bin_size * fsample)
                     stim_spk_times_bin = stim_spk_times.groupby(stim_spk_times.index // bin_samples).sum()
@@ -226,7 +214,7 @@ def analysis_vstim(bin_size, plt_fano, plt_units, plt_summary, data_path, mat_fi
 
     return all_coeff, all_pv_coeff, all_pyr_coeff, all_mix_coeff
 
-bin_size_mult = [0.01, 0.03, 0.1, 0.17, 0.25, 0.3]
+bin_size_mult = [0.01, 0.03, 0.1, 0.3]
 coeffs_run, coeffs_stat, coeffs_run_pv, coeffs_stat_pv, coeffs_run_pyr, coeffs_stat_pyr = [pd.DataFrame()
                                                                                            for i in range(6)]
 
@@ -249,11 +237,11 @@ if __name__ == '__main__':
         coeffs_stat[bin] = bin_idx['Stationary']
 
     coeffs = np.stack((coeffs_stat.as_matrix(), coeffs_run.as_matrix()), axis=2)
-    colors = {'Stationary': 'b',
-              'Running': 'r'}
+    colors = {'Stationary': '#348ABD',
+              'Running': '#E24A33'}
     fig, ax = plt.subplots()
     sns.tsplot(data=coeffs, time=bin_size_mult, ax=ax, condition=['Stationary', 'Running'], color=colors)
-    ax.set_title('Comparison of Correlation Coefficient and Counting Window, Visiual Stimulus')
+    ax.set_title('Comparison of Correlation Coefficient and Counting Window, Visual Stimulus')
     ax.set_xlabel('Counting Window (seconds)')
     ax.set_ylabel('Pearson Correlation Coefficient')
     plt.show()
