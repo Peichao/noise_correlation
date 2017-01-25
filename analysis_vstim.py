@@ -16,7 +16,7 @@ plt.switch_backend('agg')
 
 # set matplotlib parameters
 matplotlib.rcParams['pdf.fonttype'] = 42
-plt.style.use('ggplot')
+plt.style.use('fivethirtyeight')
 
 num_cores = multiprocessing.cpu_count()
 
@@ -25,7 +25,7 @@ bin_size = 0.1  # bin size for correlograms
 plt_fano = 'n'  # plot fano factor graphs?
 plt_units = 'n'  # plot individual correlelograms?
 plt_summary = 'y'  # plot summary population analyses?
-data_path = 'D:/noise_correlation/resort/'  # path to all data
+data_path = '/Volumes/anupam/Amanda Data/noise_correlation/resort/'  # path to all data
 mat_files = list(glob.iglob(data_path + 'vstim/*.mat'))  # list of all mat files in data folder
 unit_data = pd.read_csv(data_path + 'unit_info.csv')  # unit data from CSV in data folder
 layers = {1: 'supragranular', 2: 'granular', 3: 'infragranular'}  # replace layer numbers with layer names
@@ -214,56 +214,74 @@ def analysis_vstim(bin_size, plt_fano, plt_units, plt_summary, data_path, mat_fi
 
     return all_coeff, all_pv_coeff, all_pyr_coeff, all_mix_coeff
 
-bin_size_mult = [0.01, 0.03, 0.1, 0.3]
+bin_size_mult = [0.1]
 coeffs_run, coeffs_stat, coeffs_run_pv, coeffs_stat_pv, coeffs_run_pyr, coeffs_stat_pyr = [pd.DataFrame()
                                                                                            for i in range(6)]
 
-
-def par_analysis(bin, plt_fano, plt_units, plt_summary, data_path, mat_files, unit_data):
-    all_coeff, all_pv_coeff, all_pyr_coeff, all_mix_coeff = analysis_vstim(bin, plt_fano, plt_units, plt_summary,
-                                                                           data_path, mat_files, unit_data)
-    return all_coeff
-
-results = []
-if __name__ == '__main__':
-    results = Parallel(n_jobs=num_cores)(delayed(par_analysis)(i2, plt_fano, plt_units, plt_summary,
-                                                               data_path, mat_files, unit_data) for i2 in bin_size_mult)
-
-    plt.switch_backend('Qt4Agg')
-
-    for idx, bin_idx in enumerate(results):
-        bin = bin_size_mult[idx]
-        coeffs_run[bin] = bin_idx['Running']
-        coeffs_stat[bin] = bin_idx['Stationary']
-
-    coeffs = np.stack((coeffs_stat.as_matrix(), coeffs_run.as_matrix()), axis=2)
-    colors = {'Stationary': '#348ABD',
-              'Running': '#E24A33'}
-    fig, ax = plt.subplots()
-    sns.tsplot(data=coeffs, time=bin_size_mult, ax=ax, condition=['Stationary', 'Running'], color=colors)
-    ax.set_title('Comparison of Correlation Coefficient and Counting Window, Visual Stimulus')
-    ax.set_xlabel('Counting Window (seconds)')
-    ax.set_ylabel('Pearson Correlation Coefficient')
-    plt.show()
-
-
-# for bin in bin_size_mult:
+#
+# def par_analysis(bin, plt_fano, plt_units, plt_summary, data_path, mat_files, unit_data):
 #     all_coeff, all_pv_coeff, all_pyr_coeff, all_mix_coeff = analysis_vstim(bin, plt_fano, plt_units, plt_summary,
 #                                                                            data_path, mat_files, unit_data)
-#     coeffs_run[bin] = all_coeff['Running']
-#     coeffs_stat[bin] = all_coeff['Stationary']
+#     return all_coeff
 #
-#     coeffs_run_pv[bin] = all_pv_coeff['Running']
-#     coeffs_stat_pv[bin] = all_pv_coeff['Stationary']
+# results = []
+# if __name__ == '__main__':
+#     results = Parallel(n_jobs=num_cores)(delayed(par_analysis)(i2, plt_fano, plt_units, plt_summary,
+#                                                              data_path, mat_files, unit_data) for i2 in bin_size_mult)
 #
-#     coeffs_run_pyr[bin] = all_pyr_coeff['Running']
-#     coeffs_stat_pyr[bin] = all_pyr_coeff['Stationary']
+#     plt.switch_backend('Qt4Agg')
 #
-# coeffs = np.stack((coeffs_stat.as_matrix(), coeffs_run.as_matrix()), axis=2)
-# colors = {'Stationary': 'b',
-#           'Running': 'r'}
-# fig, ax = plt.subplots()
-# sns.tsplot(data=coeffs, time=bin_size_mult, ax=ax, condition=['Stationary', 'Running'], color=colors)
-# ax.set_title('Comparison of Correlation Coefficient and Counting Window, Visiual Stimulus')
-# ax.set_xlabel('Counting Window (seconds)')
-# ax.set_ylabel('Pearson Correlation Coefficient')
+#     for idx, bin_idx in enumerate(results):
+#         bin = bin_size_mult[idx]
+#         coeffs_run[bin] = bin_idx['Running']
+#         coeffs_stat[bin] = bin_idx['Stationary']
+#
+#     coeffs = np.stack((coeffs_stat.as_matrix(), coeffs_run.as_matrix()), axis=2)
+#     colors = {'Stationary': '#348ABD',
+#               'Running': '#E24A33'}
+#     fig, ax = plt.subplots()
+#     sns.tsplot(data=coeffs, time=bin_size_mult, ax=ax, condition=['Stationary', 'Running'], color=colors)
+#     ax.set_title('Comparison of Correlation Coefficient and Counting Window, Visual Stimulus')
+#     ax.set_xlabel('Counting Window (seconds)')
+#     ax.set_ylabel('Pearson Correlation Coefficient')
+#     plt.show()
+
+
+for bin in bin_size_mult:
+    all_coeff, all_pv_coeff, all_pyr_coeff, all_mix_coeff = analysis_vstim(bin, plt_fano, plt_units, plt_summary,
+                                                                           data_path, mat_files, unit_data)
+    coeffs_run[bin] = all_coeff['Running']
+    coeffs_stat[bin] = all_coeff['Stationary']
+
+    coeffs_run_pv[bin] = all_pv_coeff['Running']
+    coeffs_stat_pv[bin] = all_pv_coeff['Stationary']
+
+    coeffs_run_pyr[bin] = all_pyr_coeff['Running']
+    coeffs_stat_pyr[bin] = all_pyr_coeff['Stationary']
+
+coeffs = np.stack((coeffs_stat.as_matrix(), coeffs_run.as_matrix()), axis=2)
+
+fig, ax = plt.subplots()
+
+ax.plot(coeffs_run.mean(), color='#E24A33', label='All Units (Running)')
+ax.fill_between(bin_size_mult, coeffs_run.mean() - coeffs_run.sem(), coeffs_run.mean() + coeffs_run.sem(),
+                color='#E24A33', alpha=0.5)
+
+ax.plot(coeffs_stat.mean(), color='#348ABD', label='All Units (Stationary)')
+ax.fill_between(bin_size_mult, coeffs_stat.mean() - coeffs_stat.sem(), coeffs_stat.mean() + coeffs_stat.sem(),
+                color='#348ABD', alpha=0.5)
+
+ax.plot(coeffs_run_pv.mean(), color='#E24A33', linestyle='dashed', label='PV Units (Running)')
+ax.fill_between(bin_size_mult, coeffs_run_pv.mean() - coeffs_run_pv.sem(), coeffs_run_pv.mean() + coeffs_run_pv.sem(),
+                color='#E24A33', alpha=0.5)
+
+ax.plot(coeffs_stat_pv.mean(), color='#348ABD', linestyle='dashed', label='PV Units (Stationary)')
+ax.fill_between(bin_size_mult, coeffs_stat_pv.mean() - coeffs_stat_pv.sem(),
+                coeffs_stat_pv.mean() + coeffs_stat_pv.sem(),
+                color='#348ABD', alpha=0.5)
+
+ax.set_title('Comparison of Correlation Coefficient and Counting Window, Visual Stimulus')
+ax.set_xlabel('Counting Window (seconds)')
+ax.set_ylabel('Pearson Correlation Coefficient')
+ax.legend()
+plt.savefig(data_path + 'vstim/figures/corr_time.pdf', format='pdf')

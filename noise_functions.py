@@ -5,6 +5,7 @@ from scipy import stats
 import sklearn
 from sklearn import metrics
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from matplotlib.markers import TICKDOWN
 
 
@@ -135,10 +136,7 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
         bar_centers = ind[i] + np.array([0.5, 1.5]) * width
         significance_bar(bar_centers[0], bar_centers[1], height, display_string)
 
-    box = ax.get_position()
-    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-
-    ax.legend((stat_bar[0], run_bar[0]), ('Stationary', 'Running'), loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.legend((stat_bar[0], run_bar[0]), ('Stationary', 'Running'), loc=3)
 
     if vstim == 'y':
         stim_str = 'Visual Stimulus'
@@ -146,7 +144,6 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
         stim_str = 'No Stimulus'
 
     ax.set_ylabel('Pearson Correlation Coefficient')
-    ax.set_title('Correlation Coefficients, %s' % stim_str)
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('All Units', 'PV/PV', 'non-PV/non-PV', 'non-PV/PV'))
 
@@ -243,10 +240,7 @@ def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gra
         bar_centers = ind[i] + np.array([0.5, 1.5]) * width
         significance_bar(bar_centers[0], bar_centers[1], height, displaystring)
 
-    box = ax.get_position()
-    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-
-    ax.legend((stat_bar[0], run_bar[0]), ('Stationary', 'Running'), loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.legend((stat_bar[0], run_bar[0]), ('Stationary', 'Running'), loc=3)
 
     if vstim == 'y':
         stim_str = 'Visual Stimulus'
@@ -254,7 +248,6 @@ def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gra
         stim_str = 'No Stimulus'
 
     ax.set_ylabel('Pearson Correlation Coefficient')
-    ax.set_title('Correlation Coefficients, %s' % stim_str)
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('Supragranular', 'Granular', 'Infragranular'))
 
@@ -273,6 +266,8 @@ def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gra
 
     plt.close()
     plt.ion()
+
+    return p_vals
 
 
 def layer_type_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list,
@@ -392,7 +387,6 @@ def layer_type_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list
         stim_str = 'No Stimulus'
 
     ax.set_ylabel('Pearson Correlation Coefficient')
-    ax.set_title('Correlation Coefficients, %s' % stim_str)
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('Supra\n(PV)', 'Supra\n(Pyr)', 'Gran\n(PV)', 'Gran\n(Pyr)',
                         'Infra\n(PV)', 'Infra\n(Pyr)'))
@@ -423,8 +417,26 @@ def layer_type_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list
 
 def fano_plot(data_path, fano):
     plt.ioff()
-    plt.scatter(fano.run, fano.stat, marker='o')
+    unity = np.arange(0, 5, 0.01)
+    plt.plot(unity, unity, '--')
+
+    pv_map = {'n': '#8EBA42',
+              'y': '#988ED5'}
+
+    classes = ['non-PV', 'PV']
+    class_colors = ['#8EBA42', '#988ED5']
+    recs = []
+
+    for i in range(0, len(class_colors)):
+        recs.append(mpatches.Rectangle((0, 0), 1, 1, fc=class_colors[i]))
+
+    plt.scatter(fano.run, fano.stat, marker='o', color=fano['PV'].map(pv_map))
+    plt.xlabel('Running')
+    plt.ylabel('Stationary')
+    plt.axis([0, 5, 0, 5])
+    plt.legend(recs, classes, loc=4)
     plt.savefig(data_path + 'figures/fano.pdf', format='pdf')
+    plt.close()
     plt.ion()
 
 
@@ -452,3 +464,31 @@ def calc_MI(x, y, bins):
     c_xy = np.histogram2d(x, y, bins)[0]
     mi = sklearn.metrics.mutual_info_score(None, None, contingency=c_xy)
     return mi
+
+
+def bar_plot(data_run, data_stat, err_run, err_stat, p_vals):
+    fig, ax = plt.subplots()
+    N = len(data_run)
+    ind = np.arange(N)
+    width = 0.25
+
+    rects1 = ax.bar(ind + width, data_stat, width, color='#348ABD', alpha=0.9, yerr=err_stat, ecolor='k')
+    rects2 = ax.bar(ind, data_run, width, color='#E24A33', alpha=0.9, yerr=err_run, ecolor='k')
+
+    y_lim = ax.get_ylim()
+    offset = (y_lim[1] - y_lim[0]) / 2
+    for i, p in enumerate(p_vals):
+        if p[1] >= 0.05:
+            display_string = r'n.s.'
+        elif p[1] < 0.001:
+            display_string = r'***'
+        elif p[1] < 0.01:
+            display_string = r'**'
+        else:
+            display_string = r'*'
+
+        height = offset + np.max(data_run)
+        bar_centers = ind[i] + np.array([0.5, 1.5]) * width
+        significance_bar(bar_centers[0], bar_centers[1], height, display_string)
+
+    return fig, ax
