@@ -15,10 +15,9 @@ import noise_functions
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['font.family'] = ['sans-serif']
 matplotlib.rcParams['font.sans-serif'] = ['Arial']
-plt.style.use('ggplot')
 
 # get list of mat files and unit info from CSV in data folder
-bin_sizes = [0.1]
+bin_sizes = [0.01, 0.03, 0.05, 0.10, 0.15, 0.20, 0.25, 0.3]
 plot_bin_size = 0.1
 plt_units = 'n'  # plot individual correlelograms?
 plt_summary = 'y'  # plot summary population analyses?
@@ -200,7 +199,53 @@ pv_run_coeff = {}
 pyr_stat_coeff = {}
 pyr_run_coeff = {}
 
-for i, bin_size in enumerate(bin_sizes):
+infra_stat_coeff = {}
+gran_stat_coeff = {}
+supra_stat_coeff = {}
+means_stat_infra = np.zeros(np.size(bin_sizes))
+std_stat_infra = np.zeros(np.size(bin_sizes))
+means_stat_gran = np.zeros(np.size(bin_sizes))
+std_stat_gran = np.zeros(np.size(bin_sizes))
+means_stat_supra = np.zeros(np.size(bin_sizes))
+std_stat_supra = np.zeros(np.size(bin_sizes))
+
+infra_run_coeff = {}
+gran_run_coeff = {}
+supra_run_coeff = {}
+means_run_infra = np.zeros(np.size(bin_sizes))
+std_run_infra = np.zeros(np.size(bin_sizes))
+means_run_gran = np.zeros(np.size(bin_sizes))
+std_run_gran = np.zeros(np.size(bin_sizes))
+means_run_supra = np.zeros(np.size(bin_sizes))
+std_run_supra = np.zeros(np.size(bin_sizes))
+
+sgm_stat_coeff = all_stat_coeff[bin_sizes[0]][(all_stat_coeff[bin_sizes[0]]['Row'].isin(supra_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(gran_list)) |
+                                              (all_stat_coeff[bin_sizes[0]]['Row'].isin(gran_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(supra_list))]
+sim_stat_coeff = all_stat_coeff[bin_sizes[0]][(all_stat_coeff[bin_sizes[0]]['Row'].isin(supra_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(infra_list)) |
+                                              (all_stat_coeff[bin_sizes[0]]['Row'].isin(infra_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(supra_list))]
+gim_stat_coeff = all_stat_coeff[bin_sizes[0]][(all_stat_coeff[bin_sizes[0]]['Row'].isin(gran_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(infra_list)) |
+                                              (all_stat_coeff[bin_sizes[0]]['Row'].isin(infra_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(gran_list))]
+
+sgm_run_coeff = all_run_coeff[bin_sizes[0]][(all_run_coeff[bin_sizes[0]]['Row'].isin(supra_list)) &
+                                            (all_run_coeff[bin_sizes[0]]['Column'].isin(gran_list)) |
+                                            (all_run_coeff[bin_sizes[0]]['Row'].isin(gran_list)) &
+                                            (all_run_coeff[bin_sizes[0]]['Column'].isin(supra_list))]
+sim_run_coeff = all_run_coeff[bin_sizes[0]][(all_run_coeff[bin_sizes[0]]['Row'].isin(supra_list)) &
+                                            (all_run_coeff[bin_sizes[0]]['Column'].isin(infra_list)) |
+                                            (all_run_coeff[bin_sizes[0]]['Row'].isin(infra_list)) &
+                                            (all_run_coeff[bin_sizes[0]]['Column'].isin(supra_list))]
+gim_run_coeff = all_run_coeff[bin_sizes[0]][(all_run_coeff[bin_sizes[0]]['Row'].isin(gran_list)) &
+                                            (all_run_coeff[bin_sizes[0]]['Column'].isin(infra_list)) |
+                                            (all_run_coeff[bin_sizes[0]]['Row'].isin(infra_list)) &
+                                            (all_run_coeff[bin_sizes[0]]['Column'].isin(gran_list))]
+
+for i, bin_size in enumerate(bin_sizes[:-1]):
 
     pv_stat_coeff[bin_size] = all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(pv_list)) &
                                                        (all_stat_coeff[bin_size]['Column'].isin(pv_list))]
@@ -211,6 +256,20 @@ for i, bin_size in enumerate(bin_sizes):
                                                         (all_stat_coeff[bin_size]['Column'].isin(pyr_list))]
     pyr_run_coeff[bin_size] = all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(pyr_list)) &
                                                       (all_run_coeff[bin_size]['Column'].isin(pyr_list))]
+
+    infra_stat_coeff[bin_size] = all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(infra_list)) &
+                                                          (all_stat_coeff[bin_size]['Column'].isin(infra_list))]
+    gran_stat_coeff[bin_size] = all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(gran_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(gran_list))]
+    supra_stat_coeff[bin_size] = all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(supra_list)) &
+                                                          (all_stat_coeff[bin_size]['Column'].isin(supra_list))]
+
+    infra_run_coeff[bin_size] = all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(infra_list)) &
+                                                        (all_run_coeff[bin_size]['Column'].isin(infra_list))]
+    gran_run_coeff[bin_size] = all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(gran_list)) &
+                                                       (all_run_coeff[bin_size]['Column'].isin(gran_list))]
+    supra_run_coeff[bin_size] = all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(supra_list)) &
+                                                        (all_run_coeff[bin_size]['Column'].isin(supra_list))]
 
     means_stat[i] = all_stat_coeff[bin_size].corr_coefficient.mean()
     means_run[i] = all_run_coeff[bin_size].corr_coefficient.mean()
@@ -226,17 +285,70 @@ for i, bin_size in enumerate(bin_sizes):
     std_run_pv[i] = pv_run_coeff[bin_size].corr_coefficient.mean() /\
         np.sqrt(np.size(pv_run_coeff[bin_size].corr_coefficient))
 
+    means_stat_infra[i] = infra_stat_coeff[bin_size].corr_coefficient.mean()
+    std_stat_infra[i] = sp.stats.sem(infra_stat_coeff[bin_size].corr_coefficient)
+    means_stat_gran[i] = gran_stat_coeff[bin_size].corr_coefficient.mean()
+    std_stat_gran[i] = sp.stats.sem(gran_stat_coeff[bin_size].corr_coefficient)
+    means_stat_supra[i] = supra_stat_coeff[bin_size].corr_coefficient.mean()
+    std_stat_supra[i] = sp.stats.sem(supra_stat_coeff[bin_size].corr_coefficient)
+
+    means_run_infra[i] = infra_run_coeff[bin_size].corr_coefficient.mean()
+    std_run_infra[i] = sp.stats.sem(infra_run_coeff[bin_size].corr_coefficient)
+    means_run_gran[i] = gran_run_coeff[bin_size].corr_coefficient.mean()
+    std_run_gran[i] = sp.stats.sem(gran_run_coeff[bin_size].corr_coefficient)
+    means_run_supra[i] = supra_run_coeff[bin_size].corr_coefficient.mean()
+    std_run_supra[i] = sp.stats.sem(supra_run_coeff[bin_size].corr_coefficient)
+
+    sgm_stat_coeff = pd.concat([sgm_stat_coeff,
+                                all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(supra_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(gran_list)) |
+                                                         (all_stat_coeff[bin_size]['Row'].isin(gran_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(supra_list))]
+                               ['corr_coefficient']], axis=1)
+    sim_stat_coeff = pd.concat([sim_stat_coeff,
+                                all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(supra_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(infra_list)) |
+                                                         (all_stat_coeff[bin_size]['Row'].isin(infra_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(supra_list))]
+                               ['corr_coefficient']], axis=1)
+    gim_stat_coeff = pd.concat([gim_stat_coeff,
+                                all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(gran_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(infra_list)) |
+                                                         (all_stat_coeff[bin_size]['Row'].isin(infra_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(gran_list))]
+                               ['corr_coefficient']], axis=1)
+
+    sgm_run_coeff = pd.concat([sgm_run_coeff,
+                               all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(supra_list)) &
+                                                       (all_run_coeff[bin_size]['Column'].isin(gran_list)) |
+                                                       (all_run_coeff[bin_size]['Row'].isin(gran_list)) &
+                                                       (all_run_coeff[bin_size]['Column'].isin(supra_list))]
+                               ['corr_coefficient']], axis=1)
+    sim_run_coeff = pd.concat([sim_run_coeff,
+                               all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(supra_list)) &
+                                                       (all_run_coeff[bin_size]['Column'].isin(infra_list)) |
+                                                       (all_run_coeff[bin_size]['Row'].isin(infra_list)) &
+                                                       (all_run_coeff[bin_size]['Column'].isin(supra_list))]
+                               ['corr_coefficient']], axis=1)
+    gim_run_coeff = pd.concat([gim_run_coeff,
+                               all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(gran_list)) &
+                                                       (all_run_coeff[bin_size]['Column'].isin(infra_list)) |
+                                                       (all_run_coeff[bin_size]['Row'].isin(infra_list)) &
+                                                       (all_run_coeff[bin_size]['Column'].isin(gran_list))]
+                               ['corr_coefficient']], axis=1)
+
 plt.ioff()
 fig, ax = plt.subplots()
-ax.plot(bin_sizes, means_run, linewidth=2, color='#E24A33', label='Running')
-ax.fill_between(bin_sizes, means_run - std_run, means_run + std_run, color='#E24A33', alpha=0.5)
-ax.plot(bin_sizes, means_stat, linewidth=2, color='#348ABD', label='Stationary')
-ax.fill_between(bin_sizes, means_stat - std_stat, means_stat + std_stat, color='#348ABD', alpha=0.5)
+noise_functions.simpleaxis(ax)
+ax.plot(bin_sizes, means_run, linewidth=2, color='#ED1F24', label='Running')
+ax.fill_between(bin_sizes, means_run - std_run, means_run + std_run, color='#ED1F24', alpha=0.5)
+ax.plot(bin_sizes, means_stat, linewidth=2, color='#3852A4', label='Stationary')
+ax.fill_between(bin_sizes, means_stat - std_stat, means_stat + std_stat, color='#3852A4', alpha=0.5)
 
-ax.plot(bin_sizes, means_run_pv, linewidth=2, color='#E24A33', linestyle='dashed', label='Running (PV)')
-ax.fill_between(bin_sizes, means_run_pv - std_run_pv, means_run_pv + std_run_pv, color='#E24A33', alpha=0.5)
-ax.plot(bin_sizes, means_stat_pv, linewidth=2, color='#348ABD', linestyle='dashed', label='Stationary (PV)')
-ax.fill_between(bin_sizes, means_stat_pv - std_stat_pv, means_stat_pv + std_stat_pv, color='#348ABD', alpha=0.5)
+ax.plot(bin_sizes, means_run_pv, linewidth=2, color='#ED1F24', linestyle='dashed', label='Running (PV)')
+ax.fill_between(bin_sizes, means_run_pv - std_run_pv, means_run_pv + std_run_pv, color='#ED1F24', alpha=0.5)
+ax.plot(bin_sizes, means_stat_pv, linewidth=2, color='#3852A4', linestyle='dashed', label='Stationary (PV)')
+ax.fill_between(bin_sizes, means_stat_pv - std_stat_pv, means_stat_pv + std_stat_pv, color='#3852A4', alpha=0.5)
 
 ax.legend(loc=2)
 ax.set_xlabel('Bin Size (seconds)')
@@ -244,16 +356,96 @@ ax.set_ylabel('Pairwise Correlation Coefficient')
 plt.savefig(data_path + 'nostim/figures/timescale.pdf', format='pdf')
 plt.close()
 
+plt.ioff()
+fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+noise_functions.simpleaxis(ax1)
+noise_functions.simpleaxis(ax2)
+ax1.plot(bin_sizes, means_stat_supra, linewidth=2, color='#F05A22', label='Supragranular')
+ax1.fill_between(bin_sizes, means_stat_supra - std_stat_supra, means_stat_supra + std_stat_supra,
+                color='#F05A22', alpha=0.25)
+ax1.plot(bin_sizes, means_stat_gran, linewidth=2, color='#20B473', label='Granular')
+ax1.fill_between(bin_sizes, means_stat_gran - std_stat_gran, means_stat_gran + std_stat_gran,
+                color='#20B473', alpha=0.25)
+ax1.plot(bin_sizes, means_stat_infra, linewidth=2, color='#662F8F', label='Infragranular')
+ax1.fill_between(bin_sizes, means_stat_infra - std_stat_infra, means_stat_infra + std_stat_infra,
+                color='#662F8F', alpha=0.25)
+
+ax2.plot(bin_sizes, means_run_supra, linewidth=2, color='#F05A22', label='Supragranular')
+ax2.fill_between(bin_sizes, means_run_supra - std_run_supra, means_run_supra + std_run_supra,
+                color='#F05A22', alpha=0.25)
+ax2.plot(bin_sizes, means_run_gran, linewidth=2, color='#20B473', label='Granular')
+ax2.fill_between(bin_sizes, means_run_gran - std_run_gran, means_run_gran + std_run_gran,
+                color='#20B473', alpha=0.25)
+ax2.plot(bin_sizes, means_run_infra, linewidth=2, color='#662F8F', label='Infragranular')
+ax2.fill_between(bin_sizes, means_run_infra - std_run_infra, means_run_infra + std_run_infra,
+                color='#662F8F', alpha=0.25)
+
+ax2.legend(loc=4)
+ax1.set_xlabel('Bin Size (seconds)')
+ax1.set_ylabel('Correlation Coefficient')
+ax1.set_ylim([-0.05, 0.30])
+plt.savefig(data_path + 'nostim/figures/timescale_layer.pdf', format='pdf')
+plt.close()
+
+fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+noise_functions.simpleaxis(ax1)
+noise_functions.simpleaxis(ax2)
+plot_stat_sgm = sgm_stat_coeff['corr_coefficient']
+plot_stat_sim = sim_stat_coeff['corr_coefficient']
+plot_stat_gsm = gim_stat_coeff['corr_coefficient']
+
+plot_run_sgm = sgm_run_coeff['corr_coefficient']
+plot_run_sim = sim_run_coeff['corr_coefficient']
+plot_run_gsm = gim_run_coeff['corr_coefficient']
+
+ax1.plot(bin_sizes, plot_stat_sgm.mean(), color='#F05A22', label='Supragranular/Granular')
+ax1.fill_between(bin_sizes, plot_stat_sgm.mean() - plot_stat_sgm.sem(),
+                 plot_stat_sgm.mean() + plot_stat_sgm.sem(),
+                 color='#F05A22', alpha=0.5)
+
+ax1.plot(bin_sizes, plot_stat_sim.mean(), color='#20B473', label='Supragranular/Infragranular')
+ax1.fill_between(bin_sizes, plot_stat_sim.mean() - plot_stat_sim.sem(),
+                 plot_stat_sim.mean() + plot_stat_sim.sem(),
+                 color='#20B473', alpha=0.5)
+
+ax1.plot(bin_sizes, plot_stat_gsm.mean(), color='#662F8F', label='Granular/Infragranular')
+ax1.fill_between(bin_sizes, plot_stat_gsm.mean() - plot_stat_gsm.sem(),
+                 plot_stat_gsm.mean() + plot_stat_gsm.sem(),
+                 color='#662F8F', alpha=0.5)
+
+ax2.plot(bin_sizes, plot_run_sgm.mean(), color='#F05A22', label='Supragranular/Granular')
+ax2.fill_between(bin_sizes, plot_run_sgm.mean() - plot_run_sgm.sem(),
+                 plot_run_sgm.mean() + plot_run_sgm.sem(),
+                 color='#F05A22', alpha=0.5)
+
+ax2.plot(bin_sizes, plot_run_sim.mean(), color='#20B473', label='Supragranular/Infragranular')
+ax2.fill_between(bin_sizes, plot_run_sim.mean() - plot_run_sim.sem(),
+                 plot_run_sim.mean() + plot_run_sim.sem(),
+                 color='#20B473', alpha=0.5)
+
+ax2.plot(bin_sizes, plot_run_gsm.mean(), color='#662F8F', label='Granular/Infragranular')
+ax2.fill_between(bin_sizes, plot_run_gsm.mean() - plot_run_gsm.sem(),
+                 plot_run_gsm.mean() + plot_run_gsm.sem(),
+                 color='#662F8F', alpha=0.5)
+
+ax1.set_xlabel('Counting Window (seconds)')
+ax1.set_ylabel('Correlation Coefficient')
+ax2.legend(loc=4)
+ax1.set_ylim([0, 0.20])
+plt.savefig(data_path + 'nostim/figures/corr_time_mix.pdf', format='pdf')
+plt.close()
+
 # Plot spike rates for running vs. stationary (scatter) as well as PV vs. non-PV to show differences
-plt.figure()
+fig, ax = plt.subplots()
+noise_functions.simpleaxis(ax)
 unity = np.linspace(0, 30, 1000)
-plt.scatter(spk_rates.stat, spk_rates.run)
-plt.xlabel('Spikes per Second (Stationary)')
-plt.ylabel('Spikes per Second (Running)')
+ax.scatter(spk_rates.stat, spk_rates.run, edgecolor='none')
+ax.set_xlabel('Spikes per Second (Stationary)')
+ax.set_ylabel('Spikes per Second (Running)')
 spk_rate_run_sig = sp.stats.wilcoxon(spk_rates.stat, spk_rates.run)
-plt.plot(unity, unity, '--', color='#E24A33')
-plt.xlim([0, 30])
-plt.ylim([0, 30])
+ax.plot(unity, unity, '--', color='#E24A33')
+ax.set_xlim([0, 30])
+ax.set_ylim([0, 30])
 plt.savefig(data_path + 'nostim/figures/spk_rates_locomotion.pdf', format='pdf')
 plt.close()
 
@@ -282,13 +474,16 @@ p_vals = np.array([sp.stats.wilcoxon(spk_rates.run, spk_rates.stat),
                    sp.stats.wilcoxon(spk_rates[spk_rates.unit.isin(pyr_list)].run, spk_rates[spk_rates.unit.isin(pyr_list)].stat)])
 
 fig, ax = plt.subplots()
+noise_functions.simpleaxis(ax)
 
 N = len(run_rates_mean)
 ind = np.arange(N)
 width = 0.25
 
-rects1 = ax.bar(ind, stat_rates_mean, width, color='#348ABD', alpha=0.9, yerr=stat_rates_stde, ecolor='k')
-rects2 = ax.bar(ind + width, run_rates_mean, width, color='#E24A33', alpha=0.9, yerr=run_rates_stde, ecolor='k')
+rects1 = ax.bar(ind, stat_rates_mean, width, color='#3852A4', alpha=0.9, yerr=stat_rates_stde, ecolor='k',
+                edgecolor='w')
+rects2 = ax.bar(ind + width, run_rates_mean, width, color='#ED1F24', alpha=0.9, yerr=run_rates_stde, ecolor='k',
+                edgecolor='w')
 
 ax.set_ylabel('Mean Spike Rates (Hz)')
 ax.set_xticks(ind + width)
@@ -342,13 +537,14 @@ p_vals_layer = np.array([sp.stats.wilcoxon(spk_rates[spk_rates.unit.isin(supra_l
                                            spk_rates[spk_rates.unit.isin(infra_list)].stat)])
 
 fig, ax = plt.subplots()
+noise_functions.simpleaxis(ax)
 
 N = len(run_rates_mean)
 ind = np.arange(N)
 width = 0.25
 
-rects1 = ax.bar(ind, stat_rates_mean_layer, width, color='#348ABD', alpha=0.9, yerr=stat_rates_stde_layer, ecolor='k')
-rects2 = ax.bar(ind + width, run_rates_mean_layer, width, color='#E24A33', alpha=0.9, yerr=run_rates_stde_layer, ecolor='k')
+rects1 = ax.bar(ind, stat_rates_mean_layer, width, color='#3852A4', alpha=0.9, yerr=stat_rates_stde_layer, ecolor='k')
+rects2 = ax.bar(ind + width, run_rates_mean_layer, width, color='#ED1F24', alpha=0.9, yerr=run_rates_stde_layer, ecolor='k')
 
 ax.set_ylabel('Mean Spike Rates (Hz)')
 ax.set_xticks(ind + width)

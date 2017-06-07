@@ -3,7 +3,6 @@ import pandas as pd
 import scipy as sp
 from scipy import stats
 import sklearn
-from sklearn import metrics
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.markers import TICKDOWN
@@ -116,8 +115,11 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
     width = 0.25
 
     fig, ax = plt.subplots()
-    stat_bar = ax.bar(ind, stat_means, width, color='#348ABD', yerr=stat_std, ecolor='k')
-    run_bar = ax.bar(ind + width, run_means, width, color='#E24A33', yerr=run_std, ecolor='k')
+    simpleaxis(ax)
+    stat_bar = ax.bar(ind, stat_means, width, color='#3852A4', yerr=stat_std, ecolor='k',
+                      edgecolor='w')
+    run_bar = ax.bar(ind + width, run_means, width, color='#ED1F24', yerr=run_std, ecolor='k',
+                     edgecolor='w')
 
     y_lim = ax.get_ylim()
     offset = (y_lim[1] - y_lim[0]) / 5
@@ -146,6 +148,7 @@ def main_plots(data_path, vstim, all_stat_coeff, all_run_coeff, pv_list, pyr_lis
     ax.set_ylabel('Pearson Correlation Coefficient')
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('All Units', 'PV/PV', 'non-PV/non-PV', 'non-PV/PV'))
+    ax.set_ylim([0, 0.35])
 
     plt.savefig(data_path + 'figures/movement_bar.pdf', format='pdf')
     plt.close()
@@ -220,8 +223,9 @@ def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gra
     width = 0.25
 
     fig2, ax = plt.subplots()
-    stat_bar = ax.bar(ind, layer_stat_means, width, color='#348ABD', yerr=layer_stat_std, ecolor='k')
-    run_bar = ax.bar(ind + width, layer_run_means, width, color='#E24A33', yerr=layer_run_std, ecolor='k')
+    simpleaxis(ax)
+    stat_bar = ax.bar(ind, layer_stat_means, width, color='#3852A4', yerr=layer_stat_std, ecolor='k', edgecolor='w')
+    run_bar = ax.bar(ind + width, layer_run_means, width, color='#ED1F24', yerr=layer_run_std, ecolor='k', edgecolor='w')
 
     y_lim = ax.get_ylim()
     offset = (y_lim[1] - y_lim[0]) / 5
@@ -250,6 +254,7 @@ def layer_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list, gra
     ax.set_ylabel('Pearson Correlation Coefficient')
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('Supragranular', 'Granular', 'Infragranular'))
+    ax.set_ylim([0, 0.3])
 
     plt.savefig(data_path + 'figures/movement_bar_layer.pdf', format='pdf')
     plt.close()
@@ -417,24 +422,26 @@ def layer_type_plots(data_path, vstim, all_stat_coeff, all_run_coeff, supra_list
 
 def fano_plot(data_path, fano):
     plt.ioff()
+    fig, ax = plt.subplots()
+    simpleaxis(ax)
     unity = np.arange(0, 5, 0.01)
-    plt.plot(unity, unity, '--')
+    ax.plot(unity, unity, '--')
 
-    pv_map = {'n': '#8EBA42',
-              'y': '#988ED5'}
+    pv_map = {'n': '#000000',
+              'y': '#29AAE1'}
 
     classes = ['non-PV', 'PV']
-    class_colors = ['#8EBA42', '#988ED5']
+    class_colors = ['#000000', '#29AAE1']
     recs = []
 
     for i in range(0, len(class_colors)):
         recs.append(mpatches.Rectangle((0, 0), 1, 1, fc=class_colors[i]))
 
-    plt.scatter(fano.run, fano.stat, marker='o', color=fano['PV'].map(pv_map))
-    plt.xlabel('Running')
-    plt.ylabel('Stationary')
+    ax.scatter(fano.run, fano.stat, marker='o', color=fano['PV'].map(pv_map))
+    ax.set_xlabel('Running')
+    ax.set_ylabel('Stationary')
     plt.axis([0, 5, 0, 5])
-    plt.legend(recs, classes, loc=4)
+    ax.legend(recs, classes, loc=4)
     plt.savefig(data_path + 'figures/fano.pdf', format='pdf')
     plt.close()
     plt.ion()
@@ -492,3 +499,10 @@ def bar_plot(data_run, data_stat, err_run, err_stat, p_vals):
         significance_bar(bar_centers[0], bar_centers[1], height, display_string)
 
     return fig, ax
+
+
+def simpleaxis(ax):
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()

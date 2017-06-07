@@ -16,13 +16,12 @@ plt.switch_backend('agg')
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['font.family'] = ['sans-serif']
 matplotlib.rcParams['font.sans-serif'] = ['Arial']
-plt.style.use('ggplot')
 
 num_cores = multiprocessing.cpu_count()
 
 # get list of mat files and unit info from CSV in data folder
-# bin_sizes = np.linspace(0.01, 0.3, 30)  # bin size for correlograms
-bin_sizes = [0.1]
+bin_sizes = np.linspace(0.01, 0.3, 30)  # bin size for correlograms
+# bin_sizes = [0.01, 0.03, 0.05, 0.10, 0.15, 0.20, 0.25, 0.3]
 plt_fano = 'n'  # plot fano factor graphs?
 plt_units = 'n'  # plot individual correlelograms?
 plt_summary = 'y'  # plot summary population analyses?
@@ -43,6 +42,7 @@ unit_counter = 0
 vis_info = {}
 pv_list, pyr_list, supra_list, gran_list, infra_list = ([] for i2 in range(5))
 v_resp, ori_sel, pv_list_all, pyr_list_all = ([] for prob in range(4))
+ori_pref = {}
 
 coeffs_run, coeffs_stat, coeffs_run_pv, coeffs_stat_pv, coeffs_run_pyr, coeffs_stat_pyr = [pd.DataFrame()
                                                                                            for i3 in range(6)]
@@ -122,6 +122,8 @@ for bin_size in bin_sizes:
                     stim_time = vis_info[channel_ind].stim_time
                     fsample = vis_info[channel_ind].fsample
                     max_ori_ind = vis_info[channel_ind].max_min_deg_osi[0] - 1
+
+                ori_pref[unit_str] = ori
 
                 if (unit.PV == 'y') or ((unit.PV == 'n') & (osi_sig < 0.05)):
                     for i, item in enumerate(stat_trials):
@@ -206,25 +208,202 @@ if plt_summary == 'y':
 
 stat_coeff = all_stat_coeff[bin_sizes[0]]
 run_coeff = all_run_coeff[bin_sizes[0]]
-for bin_size in bin_sizes[1:]:
+
+infra_stat_coeff = all_stat_coeff[bin_sizes[0]][(all_stat_coeff[bin_sizes[0]]['Row'].isin(infra_list)) &
+                                                (all_stat_coeff[bin_sizes[0]]['Column'].isin(infra_list))]
+gran_stat_coeff = all_stat_coeff[bin_sizes[0]][(all_stat_coeff[bin_sizes[0]]['Row'].isin(gran_list)) &
+                                               (all_stat_coeff[bin_sizes[0]]['Column'].isin(gran_list))]
+supra_stat_coeff = all_stat_coeff[bin_sizes[0]][(all_stat_coeff[bin_sizes[0]]['Row'].isin(supra_list)) &
+                                                (all_stat_coeff[bin_sizes[0]]['Column'].isin(supra_list))]
+
+infra_run_coeff = all_run_coeff[bin_sizes[0]][(all_run_coeff[bin_sizes[0]]['Row'].isin(infra_list)) &
+                                              (all_run_coeff[bin_sizes[0]]['Column'].isin(infra_list))]
+gran_run_coeff = all_run_coeff[bin_sizes[0]][(all_run_coeff[bin_sizes[0]]['Row'].isin(gran_list)) &
+                                             (all_run_coeff[bin_sizes[0]]['Column'].isin(gran_list))]
+supra_run_coeff = all_run_coeff[bin_sizes[0]][(all_run_coeff[bin_sizes[0]]['Row'].isin(supra_list)) &
+                                              (all_run_coeff[bin_sizes[0]]['Column'].isin(supra_list))]
+
+sgm_stat_coeff = all_stat_coeff[bin_sizes[0]][(all_stat_coeff[bin_sizes[0]]['Row'].isin(supra_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(gran_list)) |
+                                              (all_stat_coeff[bin_sizes[0]]['Row'].isin(gran_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(supra_list))]
+sim_stat_coeff = all_stat_coeff[bin_sizes[0]][(all_stat_coeff[bin_sizes[0]]['Row'].isin(supra_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(infra_list)) |
+                                              (all_stat_coeff[bin_sizes[0]]['Row'].isin(infra_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(supra_list))]
+gim_stat_coeff = all_stat_coeff[bin_sizes[0]][(all_stat_coeff[bin_sizes[0]]['Row'].isin(gran_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(infra_list)) |
+                                              (all_stat_coeff[bin_sizes[0]]['Row'].isin(infra_list)) &
+                                              (all_stat_coeff[bin_sizes[0]]['Column'].isin(gran_list))]
+
+pv_stat_coeff = all_stat_coeff[bin_sizes[0]][(all_stat_coeff[bin_sizes[0]]['Row'].isin(pv_list)) &
+                                             (all_stat_coeff[bin_sizes[0]]['Column'].isin(pv_list))]
+pv_run_coeff = all_run_coeff[bin_sizes[0]][(all_run_coeff[bin_sizes[0]]['Row'].isin(pv_list)) &
+                                           (all_run_coeff[bin_sizes[0]]['Column'].isin(pv_list))]
+
+for i, bin_size in enumerate(bin_sizes[1:]):
     stat_coeff = pd.concat([stat_coeff, all_stat_coeff[bin_size]['corr_coefficient']], axis=1)
     run_coeff = pd.concat([run_coeff, all_run_coeff[bin_size]['corr_coefficient']], axis=1)
 
+    pv_stat_coeff = pd.concat([pv_stat_coeff,
+                               all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(pv_list)) &
+                                                        (all_stat_coeff[bin_size]['Column'].isin(pv_list))]],
+                              axis=1)
+    pv_run_coeff = pd.concat([pv_run_coeff,
+                               all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(pv_list)) &
+                                                       (all_run_coeff[bin_size]['Column'].isin(pv_list))]],
+                             axis=1)
+
+    infra_stat_coeff = pd.concat([infra_stat_coeff,
+                                 all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(infra_list)) &
+                                                          (all_stat_coeff[bin_size]['Column'].isin(infra_list))]
+                                 ['corr_coefficient']], axis=1)
+    gran_stat_coeff = pd.concat([gran_stat_coeff,
+                                all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(gran_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(gran_list))]
+                                ['corr_coefficient']], axis=1)
+    supra_stat_coeff = pd.concat([supra_stat_coeff,
+                                 all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(supra_list)) &
+                                                          (all_stat_coeff[bin_size]['Column'].isin(supra_list))]
+                                 ['corr_coefficient']], axis=1)
+
+    infra_run_coeff = pd.concat([infra_run_coeff,
+                                 all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(infra_list)) &
+                                                         (all_run_coeff[bin_size]['Column'].isin(infra_list))]
+                                 ['corr_coefficient']], axis=1)
+    gran_run_coeff = pd.concat([gran_run_coeff,
+                                all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(gran_list)) &
+                                                        (all_run_coeff[bin_size]['Column'].isin(gran_list))]
+                                ['corr_coefficient']], axis=1)
+    supra_run_coeff = pd.concat([supra_run_coeff,
+                                 all_run_coeff[bin_size][(all_run_coeff[bin_size]['Row'].isin(supra_list)) &
+                                                         (all_run_coeff[bin_size]['Column'].isin(supra_list))]
+                                 ['corr_coefficient']], axis=1)
+
+    sgm_stat_coeff = pd.concat([sgm_stat_coeff,
+                                all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(supra_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(gran_list)) |
+                                                         (all_stat_coeff[bin_size]['Row'].isin(gran_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(supra_list))]
+                               ['corr_coefficient']], axis=1)
+    sim_stat_coeff = pd.concat([sim_stat_coeff,
+                                all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(supra_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(infra_list)) |
+                                                         (all_stat_coeff[bin_size]['Row'].isin(infra_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(supra_list))]
+                               ['corr_coefficient']], axis=1)
+    gim_stat_coeff = pd.concat([gim_stat_coeff,
+                                all_stat_coeff[bin_size][(all_stat_coeff[bin_size]['Row'].isin(gran_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(infra_list)) |
+                                                         (all_stat_coeff[bin_size]['Row'].isin(infra_list)) &
+                                                         (all_stat_coeff[bin_size]['Column'].isin(gran_list))]
+                               ['corr_coefficient']], axis=1)
+
 fig, ax = plt.subplots()
+noise_functions.simpleaxis(ax)
 plot_stat = stat_coeff['corr_coefficient']
 plot_run = run_coeff['corr_coefficient']
-ax.plot(bin_sizes, plot_run.mean(), color='#E24A33', label='All Units (Running)')
-ax.fill_between(bin_sizes, plot_run.mean() - plot_run.sem(), plot_run.mean() + plot_run.sem(),
-                color='#E24A33', alpha=0.5)
 
-ax.plot(bin_sizes, plot_stat.mean(), color='#348ABD', label='All Units (Stationary)')
+plot_stat_pv = pv_stat_coeff['corr_coefficient']
+plot_run_pv = pv_run_coeff['corr_coefficient']
+
+ax.plot(bin_sizes, plot_run.mean(), color='#ED1F24', label='Running')
+ax.fill_between(bin_sizes, plot_run.mean() - plot_run.sem(), plot_run.mean() + plot_run.sem(),
+                color='#ED1F24', alpha=0.5)
+
+ax.plot(bin_sizes, plot_stat.mean(), color='#3852A4', label='Stationary')
 ax.fill_between(bin_sizes, plot_stat.mean() - plot_stat.sem(), plot_stat.mean() + plot_stat.sem(),
-                color='#348ABD', alpha=0.5)
+                color='#3852A4', alpha=0.5)
+
+# ax.plot(bin_sizes, plot_run_pv.mean(), color='#ED1F24', label='Running (PV)')
+# ax.fill_between(bin_sizes, plot_run_pv.mean() - plot_run_pv.sem(), plot_run_pv.mean() + plot_run_pv.sem(),
+#                 color='#ED1F24', alpha=0.5, linestyle='dashed')
+#
+# ax.plot(bin_sizes, plot_stat_pv.mean(), color='#3852A4', label='Stationary (PV)')
+# ax.fill_between(bin_sizes, plot_stat_pv.mean() - plot_stat_pv.sem(), plot_stat_pv.mean() + plot_stat_pv.sem(),
+#                 color='#3852A4', alpha=0.5, linestyle='dashed')
 
 ax.set_xlabel('Counting Window (seconds)')
 ax.set_ylabel('Pearson Correlation Coefficient')
 ax.legend()
+ax.set_ylim([0, 0.25])
 plt.savefig(data_path + 'vstim/figures/corr_time.pdf', format='pdf')
+plt.close()
+
+fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+noise_functions.simpleaxis(ax1)
+noise_functions.simpleaxis(ax2)
+plot_stat_infra = infra_stat_coeff['corr_coefficient']
+plot_stat_gran = gran_stat_coeff['corr_coefficient']
+plot_stat_supra = supra_stat_coeff['corr_coefficient']
+
+plot_run_infra = infra_run_coeff['corr_coefficient']
+plot_run_gran = gran_run_coeff['corr_coefficient']
+plot_run_supra = supra_run_coeff['corr_coefficient']
+
+ax1.plot(bin_sizes, plot_stat_supra.mean(), color='#F05A22', label='Supragranular')
+ax1.fill_between(bin_sizes, plot_stat_supra.mean() - plot_stat_supra.sem(),
+                 plot_stat_supra.mean() + plot_stat_supra.sem(),
+                 color='#F05A22', alpha=0.5)
+
+ax1.plot(bin_sizes, plot_stat_gran.mean(), color='#20B473', label='Granular')
+ax1.fill_between(bin_sizes, plot_stat_gran.mean() - plot_stat_gran.sem(),
+                 plot_stat_gran.mean() + plot_stat_gran.sem(),
+                 color='#20B473', alpha=0.5)
+
+ax1.plot(bin_sizes, plot_stat_infra.mean(), color='#662F8F', label='Infragranular')
+ax1.fill_between(bin_sizes, plot_stat_infra.mean() - plot_stat_infra.sem(),
+                 plot_stat_infra.mean() + plot_stat_infra.sem(),
+                 color='#662F8F', alpha=0.5)
+
+
+ax2.plot(bin_sizes, plot_run_supra.mean(), color='#F05A22', label='Supragranular')
+ax2.fill_between(bin_sizes, plot_run_supra.mean() - plot_run_supra.sem(),
+                 plot_run_supra.mean() + plot_run_supra.sem(),
+                 color='#F05A22', alpha=0.5)
+
+ax2.plot(bin_sizes, plot_run_gran.mean(), color='#20B473', label='Granular')
+ax2.fill_between(bin_sizes, plot_run_gran.mean() - plot_run_gran.sem(),
+                 plot_run_gran.mean() + plot_run_gran.sem(),
+                 color='#20B473', alpha=0.5)
+
+ax2.plot(bin_sizes, plot_run_infra.mean(), color='#662F8F', label='Infragranular')
+ax2.fill_between(bin_sizes, plot_run_infra.mean() - plot_run_infra.sem(),
+                 plot_run_infra.mean() + plot_run_infra.sem(),
+                 color='#662F8F', alpha=0.5)
+
+ax1.set_xlabel('Counting Window (seconds)')
+ax1.set_ylabel('Correlation Coefficient')
+ax2.legend(loc=3)
+plt.savefig(data_path + 'vstim/figures/corr_time_layer.pdf', format='pdf')
+plt.close()
+
+fig, ax1 = plt.subplots()
+noise_functions.simpleaxis(ax1)
+plot_stat_sgm = sgm_stat_coeff['corr_coefficient']
+plot_stat_sim = sim_stat_coeff['corr_coefficient']
+plot_stat_gsm = gim_stat_coeff['corr_coefficient']
+
+ax1.plot(bin_sizes, plot_stat_sgm.mean(), color='#F05A22', label='Supragranular/Granular')
+ax1.fill_between(bin_sizes, plot_stat_sgm.mean() - plot_stat_sgm.sem(),
+                 plot_stat_sgm.mean() + plot_stat_sgm.sem(),
+                 color='#F05A22', alpha=0.5)
+
+ax1.plot(bin_sizes, plot_stat_sim.mean(), color='#20B473', label='Supragranular/Infragranular')
+ax1.fill_between(bin_sizes, plot_stat_sim.mean() - plot_stat_sim.sem(),
+                 plot_stat_sim.mean() + plot_stat_sim.sem(),
+                 color='#20B473', alpha=0.5)
+
+ax1.plot(bin_sizes, plot_stat_gsm.mean(), color='#662F8F', label='Granular/Infragranular')
+ax1.fill_between(bin_sizes, plot_stat_gsm.mean() - plot_stat_gsm.sem(),
+                 plot_stat_gsm.mean() + plot_stat_gsm.sem(),
+                 color='#662F8F', alpha=0.5)
+
+ax1.set_xlabel('Counting Window (seconds)')
+ax1.set_ylabel('Correlation Coefficient')
+ax1.legend(loc=3)
+plt.savefig(data_path + 'vstim/figures/corr_time_mix.pdf', format='pdf')
+plt.close()
 
 v_resp_prop = np.array([np.size(list(set(v_resp).intersection(pv_list_all))) / np.size(pv_list_all),
                         np.size(list(set(v_resp).intersection(pyr_list_all))) / np.size(pyr_list_all)]) * 100
@@ -247,14 +426,14 @@ ax1.set_ylabel('Selective Cells (Percentage)')
 for bar in vr_bar:
     height = bar.get_height()
     ax1.text(bar.get_x() + bar.get_width() / 2., 1.02 * height,
-            '%.2f%%' % height,
-            ha='center', va='bottom')
+             '%.2f%%' % height,
+             ha='center', va='bottom')
 
 for bar in os_bar:
     height = bar.get_height()
     ax2.text(bar.get_x() + bar.get_width() / 2., 1.02 * height,
-            '%.2f%%' % height,
-            ha='center', va='bottom')
+             '%.2f%%' % height,
+             ha='center', va='bottom')
 
 plt.savefig(data_path + 'vstim/figures/props.pdf', format='pdf')
 plt.close()
